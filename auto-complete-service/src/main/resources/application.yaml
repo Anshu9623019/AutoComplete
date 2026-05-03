@@ -1,22 +1,28 @@
+
+##      PgAdmin
+##      Email: admin@gmail.com
+##      Password: admin123
+#
+##Name: local-postgres
+##Host: postgres-db
+##Port: 5432
+##Username: postgres
+##Password: Anshu123
+
+
 server:
-  port: 8080
+  port: ${SERVER_PORT:8081}
 
 spring:
   application:
     name: autocomplete-service
 
-  devtools:
-    restart:
-      enabled: true
-    livereload:
-      enabled: true
-
-
   datasource:
-    url: jdbc:postgresql://localhost:5432/autoComplete
-    username: postgres
-    password: Anshu123
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:autoComplete}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:Anshu123}
     driver-class-name: org.postgresql.Driver
+
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
@@ -25,48 +31,160 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update   # use 'validate' in prod
-    show-sql: true
+      ddl-auto: update
+
+    show-sql: false
+
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
   redis:
-    host: localhost
-    port: 6379
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
     timeout: 2000
 
-  kafka:
-    bootstrap-servers: localhost:9092
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 5
+        min-idle: 2
+        max-wait: 1000
 
-    consumer:
-      group-id: autocomplete-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:29092}
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: 1
+
+    consumer:
+      group-id: frequency-aggregator-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      max-poll-records: 500
+
+    listener:
+      ack-mode: MANUAL_IMMEDIATE
+      auto-startup: false
 
   task:
     scheduling:
       pool:
         size: 5
 
+autocomplete:
+  trie:
+    top-k: 5
+
 logging:
   level:
     root: INFO
     org.springframework: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.project.auto_complete_service: DEBUG
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics
+
   endpoint:
     health:
       show-details: always
+
+
+#server:
+#  port: 8081
+#
+#spring:
+#  application:
+#    name: autocomplete-service
+#
+#  devtools:
+#    restart:
+#      enabled: true
+#    livereload:
+#      enabled: true
+#
+#  datasource:
+#    url: jdbc:postgresql://localhost:5433/autoComplete
+#    username: postgres
+#    password: Anshu123
+#    driver-class-name: org.postgresql.Driver
+#    hikari:
+#      maximum-pool-size: 10
+#      minimum-idle: 2
+#      idle-timeout: 30000
+#      connection-timeout: 20000
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+#    show-sql: false
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
+#        format_sql: true
+#
+#  redis:
+#    host: localhost
+#    port: 6379
+#    timeout: 2000
+#    lettuce:                         # ← added
+#      pool:
+#        max-active: 10
+#        max-idle: 5
+#        min-idle: 2
+#        max-wait: 1000
+#
+#  kafka:
+#    bootstrap-servers: localhost:29092
+#
+#    producer:
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      acks: 1
+#
+#    consumer:
+#      group-id: frequency-aggregator-group   # ← updated
+#      auto-offset-reset: earliest
+#      enable-auto-commit: false
+#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      max-poll-records: 500                  # ← added, batch efficiency
+#
+#    listener:
+#      ack-mode: MANUAL_IMMEDIATE
+#      auto-startup: false
+#
+#  task:
+#    scheduling:
+#      pool:
+#        size: 5
+#
+## Autocomplete config
+#autocomplete:
+#  trie:
+#    top-k: 5                                 # ← add this for TrieConfig @Value
+#
+#logging:
+#  level:
+#    root: INFO
+#    org.springframework: INFO
+#    org.hibernate.SQL: DEBUG
+#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+#    com.project.auto_complete_service: DEBUG  # ← added so your own logs show up
+#
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health,info,metrics
+#  endpoint:
+#    health:
+#      show-details: always
