@@ -1,21 +1,28 @@
 package com.project.auto_complete_service.tries;
 
 import com.project.auto_complete_service.model.SuggestionEntry;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+@Slf4j
 @Component
 public class AutocompleteTrie {
 
-    private TrieNode root = new TrieNode();
-    private final int K = 5;
+    private volatile TrieNode root = new TrieNode();
+
+    @Value("${autocomplete.trie.top-k:5}")
+    private int K;
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public void insert(String word, int frequency) {
+        if (word == null || word.isBlank()) return;
+
         lock.writeLock().lock();
         try {
             TrieNode curr = root;
@@ -23,7 +30,6 @@ public class AutocompleteTrie {
             for (char c : word.toCharArray()) {
                 curr.getChildren().putIfAbsent(c, new TrieNode());
                 curr = curr.getChildren().get(c);
-
                 updateTopK(curr, new SuggestionEntry(word, frequency));
             }
             curr.setEndOfWord(true);
@@ -38,11 +44,14 @@ public class AutocompleteTrie {
         Collections.sort(node.getTopK());
 
         if (node.getTopK().size() > K) {
-            node.setTopK(node.getTopK().subList(0, K));
+            node.setTopK(new ArrayList<>(node.getTopK().subList(0, K)));
         }
     }
 
-    public List<SuggestionEntry> search(String prefix) {
+
+    public List<String> search(String prefix, int limit) {
+        if (prefix == null || prefix.isBlank()) return List.of();
+
         lock.readLock().lock();
         try {
             TrieNode curr = root;
@@ -51,19 +60,32 @@ public class AutocompleteTrie {
                 if (!curr.getChildren().containsKey(c)) return List.of();
                 curr = curr.getChildren().get(c);
             }
-            return curr.getTopK();
+
+            return curr.getTopK().stream()
+                    .limit(limit)
+                    .map(SuggestionEntry::word)
+                    .toList();
+
         } finally {
             lock.readLock().unlock();
         }
     }
 
-    // Atomic swap
-    public void swap(AutocompleteTrie newTrie) {
+    public void swap(TrieNode newRoot) {
         lock.writeLock().lock();
         try {
-            this.root = newTrie.root;
+            this.root = newRoot;
+            log.info("Trie root swapped successfully");
         } finally {
             lock.writeLock().unlock();
         }
+    }
+
+    public TrieNode getRoot() {
+        return root;
+    }
+
+    public void setK(int k) {
+        this.K = k;
     }
 }

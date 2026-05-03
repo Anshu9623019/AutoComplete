@@ -1,19 +1,23 @@
 package com.project.auto_complete_service.kafka.consumer;
 
-import com.project.auto_complete_service.repository.QueryFrequencyJdbcRepository;
-import com.project.auto_complete_service.repository.QueryFrequencyRepository;
+
 import com.project.auto_complete_service.service.QueryService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Getter
+@Setter
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -26,7 +30,7 @@ public class QueryConsumer {
 
     @KafkaListener(
             topics = "search-queries",
-            groupId = "group5",
+            groupId = "frequency-aggregator-group",
             concurrency = "3"
     )
     public void consume(String query, Acknowledgment ack) {
@@ -69,11 +73,15 @@ public class QueryConsumer {
 
         try {
 
-            // bulk insert/update
             queryService.bulkFlush(snapshot);
 
-            // clear only AFTER successful DB write
-            snapshot.keySet().forEach(buffer::remove);
+            snapshot.forEach((key, value) ->
+                    buffer.computeIfPresent(key, (k, current) -> {
+
+                        int updated = current - value;
+
+                        return updated <= 0 ? null : updated;
+                    }));
 
             log.info("Successfully flushed {} records",
                     snapshot.size());
@@ -81,9 +89,6 @@ public class QueryConsumer {
         } catch (Exception e) {
 
             log.error("DB flush failed: {}", e.getMessage(), e);
-
-            // optional:
-            // publish failed snapshot to DLQ topic
         }
     }
 }
