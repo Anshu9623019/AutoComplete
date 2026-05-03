@@ -1,6 +1,6 @@
 package com.project.auto_complete_service.scheduler;
 
-import com.project.auto_complete_service.respository.QueryFrequencyRepository;
+import com.project.auto_complete_service.repository.QueryFrequencyRepository;
 import com.project.auto_complete_service.tries.AutocompleteTrie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
