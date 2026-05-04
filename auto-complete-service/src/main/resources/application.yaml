@@ -104,6 +104,12 @@
 server:
   port: ${PORT:8081}
 
+cors:
+#  allowed-origins: http://localhost:3000
+  allowed-origins: https://project-nyw81.vercel.app/
+  # After Vercel deploy, update to:
+  # allowed-origins: http://localhost:3000,https://your-app.vercel.app
+
 spring:
   application:
     name: autocomplete-service
