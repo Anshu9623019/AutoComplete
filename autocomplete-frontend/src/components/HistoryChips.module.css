@@ -1,0 +1,38 @@
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 12px;
+  color: var(--muted2);
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.chip:hover {
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(79, 255, 176, 0.05);
+}

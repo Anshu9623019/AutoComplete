@@ -11,19 +11,19 @@ public class FrequencyService {
 
     private final QueryFrequencyRepository repository;
 
-    public void save(String query) {
+    // public void save(String query) {
 
-        QueryFrequency entity = repository
-                .findByWord(query)
-                .orElse(
-                        QueryFrequency.builder()
-                                .word(query)
-                                .frequency(0)
-                                .build()
-                );
+    //     QueryFrequency entity = repository
+    //             .findByWord(query)
+    //             .orElse(
+    //                     QueryFrequency.builder()
+    //                             .word(query)
+    //                             .frequency(0)
+    //                             .build()
+    //             );
 
-        entity.setFrequency(entity.getFrequency() + 1);
+    //     entity.setFrequency(entity.getFrequency() + 1);
 
-        repository.save(entity);
-    }
+    //     repository.save(entity);
+    // }
 }
