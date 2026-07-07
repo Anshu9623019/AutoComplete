@@ -1,5 +1,7 @@
 package com.project.auto_complete_service.kafka.producer;
 
+import com.project.auto_complete_service.model.SearchEvent;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -11,25 +13,26 @@ import org.springframework.stereotype.Service;
 public class QueryProducer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
-        private static final String TOPIC = "search-queries"; // ← no magic strings inline
+    private final ObjectMapper objectMapper;
 
-    public void publish(String query) {
-        if (query == null || query.isBlank()) return; // ← guard
+    private static final String TOPIC = "search-queries";
 
-        // Partition key = first char → all "java*" queries land on same partition
-        // This keeps per-prefix ordering and makes aggregation efficient
-        String partitionKey = String.valueOf(query.charAt(0));
+    public void publish(String query, String sessionId) {
+        if (query == null || query.isBlank()) return;
 
-        kafkaTemplate.send(TOPIC, partitionKey, query)
-                .whenComplete((result, ex) -> {
-                    if (ex != null) {
-                        // Log and move on — never block search response for analytics
-                        log.warn("Failed to publish query='{}' to Kafka: {}", query, ex.getMessage());
-                    } else {
-                        log.debug("Published query='{}' to partition={}",
-                                query, result.getRecordMetadata().partition());
-                    }
-                });
-        // No .get() or .join() here — that would make it blocking and add latency
+        try {
+            SearchEvent event = new SearchEvent(query, sessionId);
+            String payload = objectMapper.writeValueAsString(event);
+            String partitionKey = String.valueOf(query.charAt(0));
+
+            kafkaTemplate.send(TOPIC, partitionKey, payload)
+                    .whenComplete((result, ex) -> {
+                        if (ex != null) {
+                            log.warn("Failed to publish query='{}': {}", query, ex.getMessage());
+                        }
+                    });
+        } catch (Exception e) {
+            log.error("Error serializing search event: {}", e.getMessage());
+        }
     }
 }
