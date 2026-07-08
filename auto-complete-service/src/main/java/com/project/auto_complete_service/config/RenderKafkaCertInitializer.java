@@ -13,8 +13,8 @@ public class RenderKafkaCertInitializer implements ApplicationListener<Applicati
     public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
         try {
             System.out.println("Render Lifecycle Hook: Extracting Kafka certificates before context initializes...");
-            extractCert("client.truststore.jks", "client.truststore.jks");
-            extractCert("client.keystore.jks", "client.keystore.jks");
+            extractCert("client.truststore.jks", "/app/client.truststore.jks");
+            extractCert("client.keystore.jks", "/app/client.keystore.jks");
         } catch (Exception e) {
             System.err.println("CRITICAL ERROR: Pre-startup certificate extraction failed: " + e.getMessage());
             e.printStackTrace();
