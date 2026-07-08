@@ -17,7 +17,7 @@ public class BKTreeRebuildJob {
     private final BKTree liveBKTree;
 
     // Runs right after TrieRebuildJob (2:05 AM)
-    @Scheduled(cron = "0 54 0 * * *")
+    @Scheduled(fixedDelay = 90_000)
     @Transactional(readOnly = true)
     public void rebuild() {
         log.info("BK-Tree rebuild started...");

@@ -30,7 +30,8 @@ public class CacheWarmerConsumer {
     @KafkaListener(
             topics = "search-queries",
             groupId = "cache-warmer-group",
-            concurrency = "3"
+            concurrency = "3",
+            containerFactory = "kafkaListenerContainerFactory"
     )
     public void consume(String payload, Acknowledgment ack) {
         try {

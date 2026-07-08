@@ -38,7 +38,8 @@ export default function Home() {
             <div className={styles.logoSub}>real-time trie search</div>
           </div>
         </div>
-        <StatusBadge />
+        {/* Fixed: Explicitly forwarding search mode type into the badge engine */}
+        <StatusBadge source={ac.searchSource || 'TRIE'} />
       </header>
 
       {/* Main */}
@@ -59,7 +60,7 @@ export default function Home() {
             In-memory Trie · Redis ZSET ranking · Kafka event pipeline
           </p>
            <a href="/dashboard" className={styles.dashboardLink}>
-                              View Analytics →
+              View Analytics →
            </a>
         </div>
 
