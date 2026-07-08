@@ -3,6 +3,7 @@ package com.project.auto_complete_service.kafka.consumer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.auto_complete_service.model.SearchEvent;
 import com.project.auto_complete_service.repository.QueryFrequencyRepository;
+import com.project.auto_complete_service.service.VectorSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -10,6 +11,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +24,7 @@ public class FrequencyAggregatorConsumer {
 
     private final QueryFrequencyRepository repo;
     private final ObjectMapper objectMapper;
+    private final VectorSearchService vectorSearchService;
 
     private final ConcurrentHashMap<String, Integer> buffer
             = new ConcurrentHashMap<>();
@@ -29,7 +32,8 @@ public class FrequencyAggregatorConsumer {
     @KafkaListener(
             topics = "search-queries",
             groupId = "frequency-aggregator-group",
-            concurrency = "3"
+            concurrency = "3",
+            containerFactory = "kafkaListenerContainerFactory"
     )
     public void consume(String payload, Acknowledgment ack) {
         try {
@@ -67,6 +71,9 @@ public class FrequencyAggregatorConsumer {
         snapshot.forEach((word, count) -> {
             try {
                 repo.upsert(word, count);
+                // ✅ Generate embedding for new words right after saving
+                // Only generates if embedding is missing — safe to call always
+                vectorSearchService.generateAndStoreEmbedding(word);
             } catch (Exception e) {
                 log.error("Failed to upsert word='{}': {}", word, e.getMessage());
             }
