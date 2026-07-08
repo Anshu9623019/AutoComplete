@@ -15,6 +15,7 @@ export default function HistoryChips({ history, onSelect }) {
   return (
     <div className={styles.wrap}>
       <span className={styles.label}>Recent</span>
+      // In JSX next to label:
       <button onClick={handleClear} className={styles.clearBtn}>
         Clear
       </button>

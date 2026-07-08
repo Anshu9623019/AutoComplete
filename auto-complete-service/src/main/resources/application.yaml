@@ -1,13 +1,3 @@
-##      PgAdmin
-##      Email: admin@gmail.com
-##      Password: admin123
-#
-##Name: local-postgres
-##Host: postgres-db
-##Port: 5432
-##Username: postgres
-##Password: Anshu123
-
 server:
   port: 8081
 
@@ -22,13 +12,9 @@ spring:
       enabled: true
 
   datasource:
-#    local
-#    url: jdbc:postgresql://localhost:5433/autoComplete
-#    username: postgres
-#    password: Anshu123
-    url: jdbc:postgresql://ep-wild-darkness-anqwh4e3-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
-    username: neondb_owner
-    password: npg_QzugL9DpdMl4
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -45,22 +31,9 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
-##local
-#  redis:
-#    host: localhost
-#    port: 6379
-#    timeout: 2000
-#    lettuce:                         # ← added
-#      pool:
-#        max-active: 10
-#        max-idle: 5
-#        min-idle: 2
-#        max-wait:
-
-
   data:
     redis:
-      url: ${REDIS_URL:rediss://default:gQAAAAAAAm2TAAIgcDE3MTk3YWZjOTcwODA0ZGZmYTBiOTRjYWVjYWEyYWEzMQ@holy-teal-159123.upstash.io:6379}
+      url: ${REDIS_URL}
       ssl:
         enabled: true
       connect-timeout: 10000ms
@@ -71,24 +44,19 @@ spring:
           max-idle: 8
           min-idle: 2
 
-
-
   kafka:
     bootstrap-servers: autocomplete-kafka-ak9623019-b363.g.aivencloud.com:19348
-
     properties:
       security.protocol: SSL
       ssl.truststore.location: auto-complete-service/src/main/resources/certs/client.truststore.jks
-      ssl.truststore.password: ${KAFKA_SSL_PASSWORD:AnshuSecret123}
+      ssl.truststore.password: ${KAFKA_SSL_PASSWORD}
       ssl.keystore.location: auto-complete-service/src/main/resources/certs/client.keystore.jks
-      ssl.keystore.password: ${KAFKA_SSL_PASSWORD:AnshuSecret123}
-      ssl.key.password: ${KAFKA_SSL_PASSWORD:AnshuSecret123}
-
+      ssl.keystore.password: ${KAFKA_SSL_PASSWORD}
+      ssl.key.password: ${KAFKA_SSL_PASSWORD}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       acks: 1
-
     consumer:
       group-id: frequency-aggregator-group
       auto-offset-reset: earliest
@@ -96,33 +64,23 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       max-poll-records: 500
-
     listener:
       ack-mode: MANUAL_IMMEDIATE
       auto-startup: true
-#  kafka:
-#    bootstrap-servers: localhost:29092
-#
-#    producer:
-#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      acks: 1
-
 
   task:
     scheduling:
       pool:
         size: 5
 
-# Autocomplete config
 autocomplete:
   trie:
-    top-k: 5                                 # ← add this for TrieConfig @Value
+    top-k: 5
   llm:
-    cache-ttl-minutes: 60  # cache LLM results for 1 hour
+    cache-ttl-minutes: 60
     min-trie-results: 2
   semantic:
-    min-similarity: 0.75    # only return results above this cosine similarity
+    min-similarity: 0.75
     max-results: 5
     enabled: true
 
@@ -132,7 +90,7 @@ logging:
     org.springframework: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    com.project.auto_complete_service: DEBUG  # ← added so your own logs show up
+    com.project.auto_complete_service: DEBUG
 
 management:
   endpoints:
@@ -143,22 +101,18 @@ management:
     health:
       show-details: always
 
-
-# Add at the bottom of your application.yml
 llm:
   groq:
-    api-key: ${GROQ_API_KEY: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}
+    api-key: ${GROQ_API_KEY}
     base-url: https://api.groq.com/openai/v1
     model: llama-3.3-70b-versatile
     max-tokens: 100
-    enabled: true          # set false to disable without code change
-
-
-embedding:
-  provider: cohere                        # ← switch provider
-  cohere:
-    api-key: ${COHERE_API_KEY:BgdlX1QoypkZYoEK8L5Iu3k7SIZIiO3Ku4wibIMO}
-    base-url: https://api.cohere.ai/v1
-    model: embed-english-light-v3.0       # free, 384 dimensions
     enabled: true
 
+embedding:
+  provider: cohere
+  cohere:
+    api-key: ${COHERE_API_KEY}
+    base-url: https://api.cohere.ai/v1
+    model: embed-english-light-v3.0
+    enabled: true
