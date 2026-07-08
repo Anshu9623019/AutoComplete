@@ -46,21 +46,15 @@ public class KafkaConfig {
             putIfNotNull(props, SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, kafkaCustomProps.get("ssl.keystore.password"));
             putIfNotNull(props, SslConfigs.SSL_KEY_PASSWORD_CONFIG, kafkaCustomProps.get("ssl.key.password"));
 
-            // Convert classpath resources to absolute physical file paths for Kafka
-            try {
-                String truststoreLocation = kafkaCustomProps.get("ssl.truststore.location");
-                if (truststoreLocation != null) {
-                    props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
-                            ResourceUtils.getFile(truststoreLocation).getAbsolutePath());
-                }
+            // Pass the absolute file paths string directly to Kafka
+            String truststoreLocation = kafkaCustomProps.get("ssl.truststore.location");
+            if (truststoreLocation != null) {
+                props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, truststoreLocation);
+            }
 
-                String keystoreLocation = kafkaCustomProps.get("ssl.keystore.location");
-                if (keystoreLocation != null) {
-                    props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
-                            ResourceUtils.getFile(keystoreLocation).getAbsolutePath());
-                }
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException("Could not find the SSL certificate file inside resources!", e);
+            String keystoreLocation = kafkaCustomProps.get("ssl.keystore.location");
+            if (keystoreLocation != null) {
+                props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, keystoreLocation);
             }
         }
     }
