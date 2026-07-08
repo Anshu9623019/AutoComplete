@@ -1,118 +1,118 @@
- server:
-   port: ${PORT:8081}
+server:
+  port: 8081
 
- cors:
-   allowed-origins: ${CORS_ALLOWED_ORIGINS:https://project-nyw81.vercel.app/}
+spring:
+  application:
+    name: autocomplete-service
 
- spring:
-   application:
-     name: autocomplete-service
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
 
-   devtools:
-     restart:
-       enabled: false  # Disabled for performance in production
-     livereload:
-       enabled: false
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 30000
+      connection-timeout: 20000
 
-   datasource:
-     url: ${DB_URL:jdbc:postgresql://localhost:5433/autoComplete}
-     username: ${DB_USERNAME:postgres}
-     password: ${DB_PASSWORD}
-     driver-class-name: org.postgresql.Driver
-     hikari:
-       maximum-pool-size: ${HIKARI_MAX_POOL:20}
-       minimum-idle: ${HIKARI_MIN_IDLE:5}
-       idle-timeout: 30000
-       connection-timeout: 20000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
 
-   jpa:
-     hibernate:
-       ddl-auto: validate  # 'validate' or 'none' is recommended for safe production deployments
-     show-sql: false
-     properties:
-       hibernate:
-         dialect: org.hibernate.dialect.PostgreSQLDialect
-         format_sql: false
+  data:
+    redis:
+      url: ${REDIS_URL}
+      ssl:
+        enabled: true
+      connect-timeout: 10000ms
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
 
-   redis:
-     host: ${REDIS_HOST:localhost}
-     port: ${REDIS_PORT:6379}
-     username: ${REDIS_USERNAME:}
-     password: ${REDIS_PASSWORD:}
-     timeout: 2000
-     ssl:
-       enabled: ${REDIS_SSL_ENABLED:false}
-     lettuce:
-       pool:
-         max-active: 10
-         max-idle: 5
-         min-idle: 2
-         max-wait: 1000
+  kafka:
+    bootstrap-servers: autocomplete-kafka-ak9623019-b363.g.aivencloud.com:19348
+    properties:
+      security.protocol: SSL
+      ssl.truststore.location: auto-complete-service/src/main/resources/certs/client.truststore.jks
+      ssl.truststore.password: ${KAFKA_SSL_PASSWORD}
+      ssl.keystore.location: auto-complete-service/src/main/resources/certs/client.keystore.jks
+      ssl.keystore.password: ${KAFKA_SSL_PASSWORD}
+      ssl.key.password: ${KAFKA_SSL_PASSWORD}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: 1
+    consumer:
+      group-id: frequency-aggregator-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      max-poll-records: 500
+    listener:
+      ack-mode: MANUAL_IMMEDIATE
+      auto-startup: true
 
-   kafka:
-     bootstrap-servers: ${KAFKA_SERVERS:localhost:29092}
+  task:
+    scheduling:
+      pool:
+        size: 5
 
-     producer:
-       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-       value-serializer: org.apache.kafka.common.serialization.StringSerializer
-       acks: 1
+autocomplete:
+  trie:
+    top-k: 5
+  llm:
+    cache-ttl-minutes: 60
+    min-trie-results: 2
+  semantic:
+    min-similarity: 0.75
+    max-results: 5
+    enabled: true
 
-     consumer:
-       group-id: frequency-aggregator-group
-       auto-offset-reset: earliest
-       enable-auto-commit: false
-       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-       max-poll-records: 500
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.project.auto_complete_service: DEBUG
 
-     listener:
-       ack-mode: MANUAL_IMMEDIATE
-       auto-startup: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
 
-   task:
-     scheduling:
-       pool:
-         size: 5
+llm:
+  groq:
+    api-key: ${GROQ_API_KEY}
+    base-url: https://api.groq.com/openai/v1
+    model: llama-3.3-70b-versatile
+    max-tokens: 100
+    enabled: true
 
- autocomplete:
-   trie:
-     top-k: 5
-   llm:
-     cache-ttl-minutes: 60
-     min-trie-results: 2
-   semantic:
-     min-similarity: 0.75
-     max-results: 5
-     enabled: true
-
- logging:
-   level:
-     root: INFO
-     org.springframework: INFO
-     org.hibernate.SQL: INFO  # Turned down from DEBUG to avoid logs bloating in prod
-     com.project.auto_complete_service: INFO
-
- management:
-   endpoints:
-     web:
-       exposure:
-         include: health,info,metrics
-   endpoint:
-     health:
-       show-details: when_authorized  # Only show full details to authorized systems/admins
-
- llm:
-   groq:
-     api-key: ${GROQ_API_KEY}  # Secret key injected via Environment Variable
-     base-url: https://api.groq.com/openai/v1
-     model: llama-3.3-70b-versatile
-     max-tokens: 100
-     enabled: true
-
- embedding:
-   provider: cohere
-   cohere:
-     api-key: ${COHERE_API_KEY}  # Secret key injected via Environment Variable
-     base-url: https://api.cohere.ai/v1
-     model: embed-english-light-v3.0
-     enabled: true
+embedding:
+  provider: cohere
+  cohere:
+    api-key: ${COHERE_API_KEY}
+    base-url: https://api.cohere.ai/v1
+    model: embed-english-light-v3.0
+    enabled: true

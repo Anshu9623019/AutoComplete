@@ -75,4 +75,14 @@ public interface QueryFrequencyRepository
                         """, nativeQuery = true)
         void updateEmbedding(@Param("id") Long id,
                         @Param("embedding") String embedding);
+
+
+        // Check if word already has embedding — no full table scan
+        @Query("SELECT COUNT(q) > 0 FROM QueryFrequency q " +
+                "WHERE q.word = :word AND q.embedding IS NOT NULL")
+        boolean hasEmbedding(@Param("word") String word);
+
+        // Get just the ID — no need to load the whole entity
+        @Query("SELECT q.id FROM QueryFrequency q WHERE q.word = :word")
+        Long findIdByWord(@Param("word") String word);
 }
