@@ -48,9 +48,9 @@ spring:
     bootstrap-servers: autocomplete-kafka-ak9623019-b363.g.aivencloud.com:19348
     properties:
       security.protocol: SSL
-      ssl.truststore.location: auto-complete-service/src/main/resources/certs/client.truststore.jks
+      ssl.truststore.location: client.truststore.jks
       ssl.truststore.password: ${KAFKA_SSL_PASSWORD}
-      ssl.keystore.location: auto-complete-service/src/main/resources/certs/client.keystore.jks
+      ssl.keystore.location: client.keystore.jks
       ssl.keystore.password: ${KAFKA_SSL_PASSWORD}
       ssl.key.password: ${KAFKA_SSL_PASSWORD}
     producer:
