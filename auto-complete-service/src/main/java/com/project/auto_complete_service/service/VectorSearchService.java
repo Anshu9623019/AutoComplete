@@ -65,23 +65,21 @@ public List<String> search(String query, int limit) {
     }
 }
 
+    // ── Store embedding for a word ─────────────────────────────────
     @Transactional
     public void generateAndStoreEmbedding(String word) {
         try {
-            // ✅ Check with a targeted query — not findAll()
-            boolean alreadyHasEmbedding = repo.hasEmbedding(word);
-            if (alreadyHasEmbedding) {
-                log.debug("Embedding already exists for '{}'", word);
-                return;
-            }
+            QueryFrequency qf = repo.findAll().stream()
+                    .filter(q -> q.getWord().equals(word))
+                    .findFirst()
+                    .orElse(null);
+
+            if (qf == null || qf.hasEmbedding()) return;
 
             float[] embedding = embeddingService.embed(word);
             if (embedding.length > 0) {
-                String vectorStr = toVectorString(embedding);
-                repo.updateEmbedding(
-                        repo.findIdByWord(word),  // just get the id
-                        vectorStr
-                );
+                qf.setEmbedding(embedding);
+                repo.save(qf);
                 log.debug("Stored embedding for '{}'", word);
             }
         } catch (Exception e) {

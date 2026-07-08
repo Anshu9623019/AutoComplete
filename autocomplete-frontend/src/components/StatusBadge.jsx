@@ -2,11 +2,9 @@ import { useState, useEffect } from 'react'
 import { checkHealth } from '../services/api'
 import styles from './StatusBadge.module.css'
 
-// IMPORTANT: Make sure { source } is explicitly written here inside the brackets!
-export default function StatusBadge({ source }) {
+export default function StatusBadge() {
   const [online, setOnline] = useState(null)
 
-  // This is line 8 where it was crashing before:
   const isSemantic = source === 'SEMANTIC'
 
   useEffect(() => {
