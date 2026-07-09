@@ -8,14 +8,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
-    @Value("${cors.allowed-origins:https://project-nyw81.vercel.app}")
+    @Value("${cors.allowed-origins:https://autocomplete-6t6fsz5tk-anshu9623019s-projects.vercel.app}")
     private String allowedOrigins;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
                 .allowedOrigins(allowedOrigins.split(","))
-                .allowedMethods("GET", "POST", "OPTIONS")
+                .allowedMethods("GET", "POST","DELETE","OPTIONS")
                 .allowedHeaders("*")
                 .maxAge(3600);
     }
