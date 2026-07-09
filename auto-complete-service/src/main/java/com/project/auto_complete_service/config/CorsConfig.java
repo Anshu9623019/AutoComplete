@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
-    @Value("${cors.allowed-origins:https://autocomplete-6t6fsz5tk-anshu9623019s-projects.vercel.app,https://project-nyw81.vercel.app,http://localhost:3000}")
+    @Value("${cors.allowed-origins:https://autocomplete-6t6fsz5tk-anshu9623019s-projects.vercel.app,https://project-nyw81.vercel.app,http://localhost:3000,https://autocomplete-6t6fsz5tk-anshu9623019s-projects.vercel.app/dashboard}")
     private String allowedOrigins;
 
     @Override
